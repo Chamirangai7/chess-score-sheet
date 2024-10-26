@@ -146,8 +146,8 @@
             <!-- Action Buttons -->
             <div class="buttons" id="buttonContainer">
                 <button class="button add-move-button" onclick="addMoveRow()">Add Move</button>
-                <button class="button export-button" onclick="requestDownload('downloadPDF')">Download as PDF</button>
-                <button class="button export-button" onclick="requestDownload('downloadImage')">Download as JPG</button>
+                <button class="button export-button" onclick="exportToPDF()">Download as PDF</button>
+                <button class="button export-button" onclick="downloadAsImage()">Download as JPG</button>
             </div>
 
             <!-- Footer -->
@@ -190,9 +190,37 @@
             moveNumber++;
         }
 
-        // Sends a message to the parent app to trigger downloads
-        function requestDownload(action) {
-            window.parent.postMessage(action, '*');
+        async function downloadAsImage() {
+            const buttonContainer = document.getElementById("buttonContainer");
+            buttonContainer.style.display = 'none'; // Hide buttons for export
+
+            const container = document.querySelector(".containerWithMargin");
+            const canvas = await html2canvas(container, { scale: 2 });
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/jpeg');
+            link.download = 'chess_score_sheet.jpg';
+            link.click();
+
+            buttonContainer.style.display = 'flex'; // Show buttons again after export
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'pt', 'a4');
+
+            const buttonContainer = document.getElementById("buttonContainer");
+            buttonContainer.style.display = 'none'; // Hide buttons for export
+
+            pdf.html(document.querySelector(".containerWithMargin"), {
+                callback: function (pdf) {
+                    pdf.save("chess_score_sheet.pdf");
+                    buttonContainer.style.display = 'flex'; // Show buttons again after export
+                },
+                margin: [10, 10, 10, 10],
+                x: 10,
+                y: 10,
+                html2canvas: { scale: 0.5 }
+            });
         }
     </script>
 </body>
