@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronic Chess Score Sheet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+        }
+        .containerWithMargin {
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        h1 {
+            color: black;
+            background-color: #0062ff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th {
+            padding: 10px;
+            background-color: black;
+            color: white;
+            border: 1px solid #ddd;
+        }
+        td {
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+        }
+        .move-input {
+            width: 90%;
+            padding: 5px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .top-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .top-info input {
+            width: 100%;
+            padding: 8px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+        }
+        .add-move-button {
+            background-color: #0062ff;
+        }
+        .export-button {
+            background-color: #4CAF50;
+        }
+        .footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+        .footer .left-text {
+            color: gray;
+        }
+        .footer .highlight {
+            color: #0062ff;
+            font-weight: bold;
+        }
+        .footer .right-text {
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="container containerWithMargin">
+        <div id="scoreSheetContainer">
+            <h1>Chess Score Sheet</h1>
+            
+            <!-- Top Info Inputs -->
+            <div class="top-info">
+                <input type="text" placeholder="White Player Name" id="whitePlayer">
+                <input type="text" placeholder="Black Player Name" id="blackPlayer">
+                <input type="text" placeholder="White Rating" id="whiteRating">
+                <input type="text" placeholder="Black Rating" id="blackRating">
+                <input type="text" placeholder="Event Name" id="eventName">
+                <input type="date" id="eventDate">
+                <input type="text" placeholder="Round" id="round">
+                <input type="text" placeholder="Result" id="result">
+            </div>
+            
+            <!-- Score Sheet Table -->
+            <table id="scoreSheet">
+                <thead>
+                    <tr>
+                        <th>Move</th>
+                        <th>White</th>
+                        <th>Black</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreTable">
+                    <!-- Pre-added 5 move rows -->
+                    <script>
+                        for (let i = 1; i <= 5; i++) {
+                            document.write(`
+                                <tr>
+                                    <td>${i}</td>
+                                    <td><input type="text" class="move-input" placeholder="Move ${i}"></td>
+                                    <td><input type="text" class="move-input" placeholder="Move ${i}"></td>
+                                </tr>
+                            `);
+                        }
+                    </script>
+                </tbody>
+            </table>
+            
+            <!-- Action Buttons -->
+            <div class="buttons" id="buttonContainer">
+                <button class="button add-move-button" onclick="addMoveRow()">Add Move</button>
+                <button class="button export-button" onclick="exportToPDF()">Download as PDF</button>
+                <button class="button export-button" onclick="downloadAsImage()">Download as JPG</button>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <span class="left-text">Made by <span class="highlight">Chess Saviya</span></span>
+                <span class="right-text">www.domain.lk</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Libraries for PDF and Image Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        let moveNumber = 6;
+
+        function addMoveRow() {
+            const row = document.createElement("tr");
+
+            const moveCell = document.createElement("td");
+            moveCell.textContent = moveNumber;
+            row.appendChild(moveCell);
+
+            const whiteCell = document.createElement("td");
+            const whiteInput = document.createElement("input");
+            whiteInput.type = "text";
+            whiteInput.className = "move-input";
+            whiteCell.appendChild(whiteInput);
+            row.appendChild(whiteCell);
+
+            const blackCell = document.createElement("td");
+            const blackInput = document.createElement("input");
+            blackInput.type = "text";
+            blackInput.className = "move-input";
+            blackCell.appendChild(blackInput);
+            row.appendChild(blackCell);
+
+            document.getElementById("scoreTable").appendChild(row);
+            moveNumber++;
+        }
+
+        async function downloadAsImage() {
+            const buttonContainer = document.getElementById("buttonContainer");
+            buttonContainer.style.display = 'none'; // Hide buttons for export
+
+            const container = document.querySelector(".containerWithMargin");
+            const canvas = await html2canvas(container, { scale: 2 });
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/jpeg');
+            link.download = 'chess_score_sheet.jpg';
+            link.click();
+
+            buttonContainer.style.display = 'flex'; // Show buttons again after export
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'pt', 'a4');
+
+            const buttonContainer = document.getElementById("buttonContainer");
+            buttonContainer.style.display = 'none'; // Hide buttons for export
+
+            pdf.html(document.querySelector(".containerWithMargin"), {
+                callback: function (pdf) {
+                    pdf.save("chess_score_sheet.pdf");
+                    buttonContainer.style.display = 'flex'; // Show buttons again after export
+                },
+                margin: [10, 10, 10, 10],
+                x: 10,
+                y: 10,
+                html2canvas: { scale: 0.5 }
+            });
+        }
+    </script>
+</body>
+</html>
