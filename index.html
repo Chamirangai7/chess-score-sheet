@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 10px;
             color: #333;
         }
         .container {
@@ -22,11 +22,11 @@
             padding: 20px;
             background-color: #ffffff;
         }
-        h1 {
-            color: black;
+        h2 {
+            color: #ffffff;
             background-color: #0062ff;
             padding: 10px;
-            border-radius: 5px;
+            border-radius: 7px;
         }
         table {
             border-collapse: collapse;
@@ -35,26 +35,46 @@
         }
         th {
             padding: 10px;
-            background-color: black;
+            background-color: Black;
             color: white;
             border: 1px solid #ddd;
         }
         td {
-            padding: 10px;
+            padding: 5px;
             background-color: #f0f0f0;
             border: 1px solid #ddd;
         }
         .move-input {
             width: 90%;
-            padding: 5px;
+            padding: 3px;
             text-align: center;
             font-size: 1rem;
+        }
+        .move-input.white-bg {
+            background-color: #ffffff;
+            color: #0062ff;
+        }
+        .move-input.black-bg {
+            background-color: #e0e0e0;
+            color: #000;
+        }
+        .move-input.move-bg {
+            background-color: #f0f8ff;
+            color: #333;
         }
         .top-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 10px;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        .label {
+            text-align: left;
+            font-weight: bold;
+            margin-bottom: 2px;
         }
         .top-info input {
             width: 100%;
@@ -84,10 +104,10 @@
             background-color: #4CAF50;
         }
         .footer {
-            margin-top: 10px;
+            margin-top: 25px;
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
+            font-size: 1rem;
         }
         .footer .left-text {
             color: gray;
@@ -97,25 +117,44 @@
             font-weight: bold;
         }
         .footer .right-text {
-            color: gray;
+            color: #0062ff;
+            font-style: italic;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div class="container containerWithMargin">
         <div id="scoreSheetContainer">
-            <h1>Chess Score Sheet</h1>
+            <h2>Chess Score Sheet</h1>
             
             <!-- Top Info Inputs -->
             <div class="top-info">
-                <input type="text" placeholder="White Player Name" id="whitePlayer">
-                <input type="text" placeholder="Black Player Name" id="blackPlayer">
+                <div class="label">White Player</div>
+                <div class="label">Black Player</div>
+                <input type="text" placeholder="Name White" id="whitePlayer">
+                <input type="text" placeholder="Name Black" id="blackPlayer">
+
                 <input type="text" placeholder="White Rating" id="whiteRating">
                 <input type="text" placeholder="Black Rating" id="blackRating">
-                <input type="text" placeholder="Event Name" id="eventName">
+                
+                <div class="label full-width">Event Name</div>
+                <input type="text" class="full-width" placeholder="Chess Event Name" id="eventName">
+
+                <div class="label">Date</div>
+                <div class="label">Time</div>
                 <input type="date" id="eventDate">
-                <input type="text" placeholder="Round" id="round">
-                <input type="text" placeholder="Result" id="result">
+                <input type="time" id="eventTime">
+
+                <div class="label">Round</div>
+                <div class="label">Result</div>
+                <input type="text" placeholder="Round No:" id="round">
+                <select id="result">
+                    <option value="" disabled selected>Select Result</option>
+                    <option value="1 - 0">1 - 0</option>
+                    <option value="1/2 - 1/2">1/2 - 1/2</option>
+                    <option value="0 - 1">0 - 1</option>
+                </select>
             </div>
             
             <!-- Score Sheet Table -->
@@ -128,14 +167,14 @@
                     </tr>
                 </thead>
                 <tbody id="scoreTable">
-                    <!-- Pre-added 5 move rows -->
+                    <!-- Pre-added 10 move rows -->
                     <script>
-                        for (let i = 1; i <= 5; i++) {
+                        for (let i = 1; i <= 10; i++) {
                             document.write(`
                                 <tr>
                                     <td>${i}</td>
-                                    <td><input type="text" class="move-input" placeholder="Move ${i}"></td>
-                                    <td><input type="text" class="move-input" placeholder="Move ${i}"></td>
+                                    <td><input type="text" class="move-input white-bg" placeholder="Move ${i}"></td>
+                                    <td><input type="text" class="move-input black-bg" placeholder="Move ${i}"></td>
                                 </tr>
                             `);
                         }
@@ -147,13 +186,13 @@
             <div class="buttons" id="buttonContainer">
                 <button class="button add-move-button" onclick="addMoveRow()">Add Move</button>
                 <button class="button export-button" onclick="exportToPDF()">Download as PDF</button>
-                <button class="button export-button" onclick="downloadAsImage()">Download as JPG</button>
+                <button class="button export-button" onclick="downloadAsImage()">Download as Image</button>
             </div>
 
             <!-- Footer -->
             <div class="footer">
-                <span class="left-text">Made by <span class="highlight">Chess Saviya</span></span>
-                <span class="right-text">www.domain.lk</span>
+                <span class="left-text">Developed by <span class="highlight">Chess Saviya</span></span>
+                <span class="right-text" onclick="redirectToWebsite()">www.chesssaviya.lk</span>
             </div>
         </div>
     </div>
@@ -163,7 +202,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        let moveNumber = 6;
+        let moveNumber = 11;
 
         function addMoveRow() {
             const row = document.createElement("tr");
@@ -175,14 +214,14 @@
             const whiteCell = document.createElement("td");
             const whiteInput = document.createElement("input");
             whiteInput.type = "text";
-            whiteInput.className = "move-input";
+            whiteInput.className = "move-input white-bg";
             whiteCell.appendChild(whiteInput);
             row.appendChild(whiteCell);
 
             const blackCell = document.createElement("td");
             const blackInput = document.createElement("input");
             blackInput.type = "text";
-            blackInput.className = "move-input";
+            blackInput.className = "move-input black-bg";
             blackCell.appendChild(blackInput);
             row.appendChild(blackCell);
 
@@ -192,16 +231,16 @@
 
         async function downloadAsImage() {
             const buttonContainer = document.getElementById("buttonContainer");
-            buttonContainer.style.display = 'none'; // Hide buttons for export
+            buttonContainer.style.display = 'none';
 
             const container = document.querySelector(".containerWithMargin");
-            const canvas = await html2canvas(container, { scale: 2 });
+            const canvas = await html2canvas(container, { scale: 1.5, scrollY: -window.scrollY });
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/jpeg');
             link.download = 'chess_score_sheet.jpg';
             link.click();
 
-            buttonContainer.style.display = 'flex'; // Show buttons again after export
+            buttonContainer.style.display = 'flex';
         }
 
         function exportToPDF() {
@@ -209,18 +248,22 @@
             const pdf = new jsPDF('p', 'pt', 'a4');
 
             const buttonContainer = document.getElementById("buttonContainer");
-            buttonContainer.style.display = 'none'; // Hide buttons for export
+            buttonContainer.style.display = 'none';
 
             pdf.html(document.querySelector(".containerWithMargin"), {
                 callback: function (pdf) {
                     pdf.save("chess_score_sheet.pdf");
-                    buttonContainer.style.display = 'flex'; // Show buttons again after export
+                    buttonContainer.style.display = 'flex';
                 },
                 margin: [10, 10, 10, 10],
                 x: 10,
                 y: 10,
-                html2canvas: { scale: 0.5 }
+                html2canvas: { scale: 1.2, scrollY: -window.scrollY }
             });
+        }
+
+        function redirectToWebsite() {
+            window.location.href = "https://www.chesssaviya.lk";
         }
     </script>
 </body>
