@@ -47,7 +47,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             width: 100%;
-            font-size: 16px; /* Prevents iOS zoom on focus */
+            font-size: 16px; 
         }
 
         .score-container {
@@ -79,25 +79,44 @@
         .btn-pgn { background: #334155; }
         .btn-save { background: #10b981; }
 
-        /* MODAL STYLES (For Mobile Fallback) */
+        /* --- MODAL FIXES --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85); z-index: 9999;
+            background: rgba(0,0,0,0.9); z-index: 9999;
             display: none; align-items: center; justify-content: center;
             flex-direction: column; padding: 20px;
         }
+        
         .modal-content {
             background: white; padding: 15px; border-radius: 12px;
-            max-width: 100%; max-height: 80vh; overflow: auto; text-align: center;
-        }
-        .modal-content img { max-width: 100%; height: auto; border: 1px solid #ddd; }
-        .modal-msg { margin-bottom: 10px; color: #333; font-weight: 600; }
-        .close-btn {
-            margin-top: 15px; padding: 10px 20px; background: #ef4444;
-            color: white; border: none; border-radius: 6px; font-weight: bold;
+            max-width: 100%; max-height: 85vh; overflow-y: auto; text-align: center;
+            display: flex; flex-direction: column; gap: 10px;
         }
 
-        .hide-on-export { display: flex; }
+        /* CRITICAL: Force Long-Press Menu on iOS/Android */
+        .modal-content img { 
+            max-width: 100%; 
+            height: auto; 
+            border: 1px solid #ddd;
+            -webkit-touch-callout: default !important; /* Enables context menu on iOS */
+            -webkit-user-select: auto !important;      /* Enables selection */
+            user-select: auto !important;
+            pointer-events: auto !important;           /* Ensures touches register */
+        }
+
+        .modal-msg { color: #333; font-weight: 600; font-size: 0.9rem; }
+        
+        .close-btn {
+            padding: 10px; background: #ef4444; color: white; 
+            border: none; border-radius: 6px; font-weight: bold; width: 100%;
+        }
+
+        /* Fallback Link Button */
+        .download-link-btn {
+            display: block; padding: 10px; background: #2563eb; 
+            color: white; text-decoration: none; border-radius: 6px; 
+            font-weight: bold; font-size: 0.9rem; margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -126,7 +145,7 @@
             <div id="movesList"></div>
         </div>
 
-        <div class="actions hide-on-export" id="controlPanel">
+        <div class="actions" id="controlPanel">
             <button class="btn btn-add" onclick="addMoveRow()">+ Move</button>
             <button class="btn btn-pgn" onclick="forceCopyPGN()">Copy PGN</button>
             <button class="btn btn-save" onclick="generateImage()">Save Image</button>
@@ -135,8 +154,14 @@
 
     <div id="previewModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-msg">Long Press the image below to Save</div>
+            <div class="modal-msg">Long Press image to Save</div>
+            
             <div id="modalImageContainer"></div>
+            
+            <a id="directDownloadLink" class="download-link-btn" href="#" download="chess_score.jpg">
+                Download Image (Click)
+            </a>
+
             <button class="close-btn" onclick="closeModal()">Close</button>
         </div>
     </div>
@@ -165,9 +190,8 @@
             moveCount++;
         }
 
-        // --- FIXED PGN COPY (Legacy Fallback) ---
+        // --- PGN COPY ---
         function forceCopyPGN() {
-            // Build PGN String
             let pgn = `[Event "${document.getElementById('eventName').value}"]\n`;
             pgn += `[White "${document.getElementById('whitePlayer').value}"]\n`;
             pgn += `[Black "${document.getElementById('blackPlayer').value}"]\n`;
@@ -180,74 +204,60 @@
                 pgn += `${i}. ${w} ${b} `;
             }
 
-            // Method 1: Modern API (Try this first)
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(pgn)
                     .then(() => alert("PGN Copied!"))
-                    .catch(() => fallbackCopy(pgn)); // If fails, go to fallback
+                    .catch(() => fallbackCopy(pgn));
             } else {
-                fallbackCopy(pgn); // If API doesn't exist, go to fallback
+                fallbackCopy(pgn);
             }
         }
 
         function fallbackCopy(text) {
-            // Method 2: The "Old School" hidden textarea trick
-            // This works in almost all restrictive WebViews
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            
-            // Ensure it's part of the DOM but invisible
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            textArea.style.top = "0";
+            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
             document.body.appendChild(textArea);
-            
-            textArea.focus();
-            textArea.select();
-            
+            textArea.focus(); textArea.select();
             try {
-                const successful = document.execCommand('copy');
-                if(successful) alert("PGN Copied (Legacy Mode)!");
-                else alert("Failed to copy. Please manually screenshot.");
+                document.execCommand('copy');
+                alert("PGN Copied!");
             } catch (err) {
-                alert("Copy failed completely. Your browser may be blocking scripts.");
+                alert("Copy failed.");
             }
-            
             document.body.removeChild(textArea);
         }
 
-        // --- FIXED IMAGE EXPORT (Manual Save Mode) ---
+        // --- IMAGE EXPORT ---
         async function generateImage() {
             const controls = document.getElementById('controlPanel');
             const container = document.getElementById('printableArea');
             
-            // 1. Hide buttons
-            controls.style.display = 'none';
+            controls.style.display = 'none'; // Hide buttons
 
             try {
-                // 2. Capture Screenshot
                 const canvas = await html2canvas(container, { scale: 2, useCORS: true, scrollY: -window.scrollY });
-                controls.style.display = 'flex'; // Show buttons back immediately
+                controls.style.display = 'flex'; // Show buttons
 
-                // 3. Try Native Share (Best for Mobile)
+                // Convert to Blob for URL creation
                 canvas.toBlob(async (blob) => {
+                    // Create object URL
+                    const url = URL.createObjectURL(blob);
+                    
+                    // 1. Try Native Share
                     const file = new File([blob], "chess_score.jpg", { type: "image/jpeg" });
-
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         try {
-                            await navigator.share({
-                                files: [file],
-                                title: 'Chess Score',
-                                text: 'My Game Record'
-                            });
-                            return; // Stop if share worked
+                            await navigator.share({ files: [file] });
+                            return; 
                         } catch (e) {
-                            console.log("Share canceled or failed, opening modal.");
+                            console.log("Share failed, opening modal.");
                         }
                     }
 
-                    // 4. Fallback: Show Modal for Long-Press Save
-                    showModal(canvas.toDataURL("image/jpeg"));
+                    // 2. Open Modal (if share fails)
+                    showModal(url);
+
                 }, 'image/jpeg', 0.9);
 
             } catch (err) {
@@ -257,11 +267,17 @@
             }
         }
 
-        function showModal(imgData) {
+        function showModal(blobUrl) {
             const modal = document.getElementById('previewModal');
             const container = document.getElementById('modalImageContainer');
+            const downloadBtn = document.getElementById('directDownloadLink');
+
+            // Set Image
+            container.innerHTML = `<img src="${blobUrl}" alt="Score Sheet" />`;
             
-            container.innerHTML = `<img src="${imgData}" alt="Score Sheet" />`;
+            // Set Download Button Link
+            downloadBtn.href = blobUrl;
+
             modal.style.display = 'flex';
         }
 
