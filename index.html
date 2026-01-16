@@ -2,275 +2,390 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Electronic Chess Score Sheet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Modern Chess Score Sheet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px 10px;
             display: flex;
             justify-content: center;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            color: #333;
         }
+
         .container {
             width: 100%;
-            max-width: 600px;
-            text-align: center;
+            max-width: 700px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 24px;
             position: relative;
         }
-        .containerWithMargin {
-            padding: 20px;
-            background-color: #ffffff;
-        }
-        h2 {
-            color: #ffffff;
-            background-color: #0062ff;
-            padding: 10px;
-            border-radius: 7px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
-        }
-        th {
-            padding: 10px;
-            background-color: Black;
-            color: white;
-            border: 1px solid #ddd;
-        }
-        td {
-            padding: 5px;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-        }
-        .move-input {
-            width: 90%;
-            padding: 3px;
+
+        /* Header Styling */
+        header {
             text-align: center;
-            font-size: 1rem;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 16px;
         }
-        .move-input.white-bg {
-            background-color: #ffffff;
-            color: #0062ff;
+
+        h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
-        .move-input.black-bg {
-            background-color: #e0e0e0;
-            color: #000;
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
-        .move-input.move-bg {
-            background-color: #f0f8ff;
-            color: #333;
-        }
-        .top-info {
+
+        /* Form Grid */
+        .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 16px;
+            margin-bottom: 24px;
         }
-        .full-width {
-            grid-column: span 2;
+
+        .full-width { grid-column: span 2; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
         }
-        .label {
-            text-align: left;
-            font-weight: bold;
-            margin-bottom: 2px;
+
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .top-info input {
+
+        input, select {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            background: #fff;
             width: 100%;
-            padding: 8px;
-            font-size: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
         }
-        .buttons {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
-        .button {
-            padding: 10px 20px;
-            font-size: 1rem;
-            cursor: pointer;
-            border: none;
-            border-radius: 4px;
+
+        /* Score Table */
+        .score-container {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .score-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr;
+            background: var(--text-main);
             color: white;
+            padding: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
         }
-        .add-move-button {
-            background-color: #0062ff;
+
+        .move-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr;
+            border-bottom: 1px solid var(--border);
         }
-        .export-button {
-            background-color: #4CAF50;
-        }
-        .footer {
-            margin-top: 25px;
+
+        .move-row:last-child { border-bottom: none; }
+
+        .move-num {
             display: flex;
-            justify-content: space-between;
-            font-size: 1rem;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
-        .footer .left-text {
-            color: gray;
+
+        .move-input {
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            text-align: center;
+            font-family: 'Inter', monospace;
+            font-weight: 500;
         }
-        .footer .highlight {
-            color: #0062ff;
-            font-weight: bold;
+        
+        .move-input:focus {
+            background: #eff6ff;
+            box-shadow: none;
         }
-        .footer .right-text {
-            color: #0062ff;
-            font-style: italic;
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.1s, opacity 0.2s;
+            min-width: 140px;
         }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-dark { background: var(--text-main); color: white; }
+        
+        /* Footer */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+        
+        .brand { color: var(--primary); font-weight: 700; text-decoration: none; }
+
+        /* Hide specific elements during export */
+        .hide-on-export { display: flex; }
     </style>
 </head>
 <body>
-    <div class="container containerWithMargin">
-        <div id="scoreSheetContainer">
-            <h2>Chess Score Sheet</h1>
+
+    <div class="container" id="printableArea">
+        <header>
+            <h1>Chess Score Sheet</h1>
+            <div class="subtitle">Official Electronic Record</div>
+        </header>
+
+        <div class="info-grid">
+            <div class="input-group">
+                <label>White Player</label>
+                <input type="text" id="whitePlayer" placeholder="Name">
+            </div>
+            <div class="input-group">
+                <label>Black Player</label>
+                <input type="text" id="blackPlayer" placeholder="Name">
+            </div>
             
-            <!-- Top Info Inputs -->
-            <div class="top-info">
-                <div class="label">White Player</div>
-                <div class="label">Black Player</div>
-                <input type="text" placeholder="Name White" id="whitePlayer">
-                <input type="text" placeholder="Name Black" id="blackPlayer">
+            <div class="input-group">
+                <label>White Elo</label>
+                <input type="number" id="whiteRating" placeholder="0000">
+            </div>
+            <div class="input-group">
+                <label>Black Elo</label>
+                <input type="number" id="blackRating" placeholder="0000">
+            </div>
 
-                <input type="text" placeholder="White Rating" id="whiteRating">
-                <input type="text" placeholder="Black Rating" id="blackRating">
-                
-                <div class="label full-width">Event Name</div>
-                <input type="text" class="full-width" placeholder="Chess Event Name" id="eventName">
+            <div class="input-group full-width">
+                <label>Event / Tournament</label>
+                <input type="text" id="eventName" placeholder="e.g. National Championship 2026">
+            </div>
 
-                <div class="label">Date</div>
-                <div class="label">Time</div>
+            <div class="input-group">
+                <label>Date</label>
                 <input type="date" id="eventDate">
-                <input type="time" id="eventTime">
-
-                <div class="label">Round</div>
-                <div class="label">Result</div>
-                <input type="text" placeholder="Round No:" id="round">
+            </div>
+            <div class="input-group">
+                <label>Round</label>
+                <input type="number" id="round" placeholder="1">
+            </div>
+            
+            <div class="input-group full-width">
+                <label>Result</label>
                 <select id="result">
                     <option value="" disabled selected>Select Result</option>
-                    <option value="1 - 0">1 - 0</option>
-                    <option value="1/2 - 1/2">1/2 - 1/2</option>
-                    <option value="0 - 1">0 - 1</option>
+                    <option value="1 - 0">1 - 0 (White Wins)</option>
+                    <option value="1/2 - 1/2">1/2 - 1/2 (Draw)</option>
+                    <option value="0 - 1">0 - 1 (Black Wins)</option>
                 </select>
             </div>
-            
-            <!-- Score Sheet Table -->
-            <table id="scoreSheet">
-                <thead>
-                    <tr>
-                        <th>Move</th>
-                        <th>White</th>
-                        <th>Black</th>
-                    </tr>
-                </thead>
-                <tbody id="scoreTable">
-                    <!-- Pre-added 10 move rows -->
-                    <script>
-                        for (let i = 1; i <= 10; i++) {
-                            document.write(`
-                                <tr>
-                                    <td>${i}</td>
-                                    <td><input type="text" class="move-input white-bg" placeholder="Move ${i}"></td>
-                                    <td><input type="text" class="move-input black-bg" placeholder="Move ${i}"></td>
-                                </tr>
-                            `);
-                        }
-                    </script>
-                </tbody>
-            </table>
-            
-            <!-- Action Buttons -->
-            <div class="buttons" id="buttonContainer">
-                <button class="button add-move-button" onclick="addMoveRow()">Add Move</button>
-                <button class="button export-button" onclick="exportToPDF()">Download as PDF</button>
-                <button class="button export-button" onclick="downloadAsImage()">Download as Image</button>
-            </div>
-
-            <!-- Footer -->
-            <div class="footer">
-                <span class="left-text">Developed by <span class="highlight">Chess Saviya</span></span>
-                <span class="right-text" onclick="redirectToWebsite()">www.chesssaviya.lk</span>
-            </div>
         </div>
+
+        <div class="score-container">
+            <div class="score-header">
+                <div>#</div>
+                <div>White</div>
+                <div>Black</div>
+            </div>
+            <div id="movesList">
+                </div>
+        </div>
+
+        <div class="actions hide-on-export" id="controlPanel">
+            <button class="btn btn-primary" onclick="addMoveRow()">+ Add Move</button>
+            <button class="btn btn-dark" onclick="copyPGN()">📋 Copy PGN</button>
+            <button class="btn btn-success" onclick="handleExport('pdf')">📄 Save PDF</button>
+            <button class="btn btn-success" onclick="handleExport('image')">🖼️ Save Image</button>
+        </div>
+
+        <footer>
+            Powered by <a href="https://www.chesssaviya.lk" class="brand" onclick="window.open(this.href); return false;">Chess Saviya</a>
+        </footer>
     </div>
 
-    <!-- Libraries for PDF and Image Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        let moveNumber = 11;
+        let moveCount = 1;
+        const MOVES_CONTAINER = document.getElementById('movesList');
 
-        function addMoveRow() {
-            const row = document.createElement("tr");
+        // Initialize 10 rows
+        window.onload = () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('eventDate').value = today;
+            for(let i=0; i<12; i++) addMoveRow(false);
+        };
 
-            const moveCell = document.createElement("td");
-            moveCell.textContent = moveNumber;
-            row.appendChild(moveCell);
-
-            const whiteCell = document.createElement("td");
-            const whiteInput = document.createElement("input");
-            whiteInput.type = "text";
-            whiteInput.className = "move-input white-bg";
-            whiteCell.appendChild(whiteInput);
-            row.appendChild(whiteCell);
-
-            const blackCell = document.createElement("td");
-            const blackInput = document.createElement("input");
-            blackInput.type = "text";
-            blackInput.className = "move-input black-bg";
-            blackCell.appendChild(blackInput);
-            row.appendChild(blackCell);
-
-            document.getElementById("scoreTable").appendChild(row);
-            moveNumber++;
+        function addMoveRow(shouldFocus = true) {
+            const row = document.createElement('div');
+            row.className = 'move-row';
+            row.innerHTML = `
+                <div class="move-num">${moveCount}</div>
+                <input type="text" class="move-input" placeholder="w${moveCount}" id="w${moveCount}">
+                <input type="text" class="move-input" placeholder="b${moveCount}" id="b${moveCount}">
+            `;
+            MOVES_CONTAINER.appendChild(row);
+            
+            if(shouldFocus) {
+                setTimeout(() => document.getElementById(`w${moveCount}`).focus(), 100);
+            }
+            moveCount++;
         }
 
-        async function downloadAsImage() {
-            const buttonContainer = document.getElementById("buttonContainer");
-            buttonContainer.style.display = 'none';
+        // PGN Generator (Modern Feature)
+        function copyPGN() {
+            let pgn = `[Event "${document.getElementById('eventName').value}"]\n`;
+            pgn += `[Site "Chess Saviya App"]\n`;
+            pgn += `[Date "${document.getElementById('eventDate').value}"]\n`;
+            pgn += `[White "${document.getElementById('whitePlayer').value}"]\n`;
+            pgn += `[Black "${document.getElementById('blackPlayer').value}"]\n`;
+            pgn += `[Result "${document.getElementById('result').value}"]\n\n`;
 
-            const container = document.querySelector(".containerWithMargin");
-            const canvas = await html2canvas(container, { scale: 1.5, scrollY: -window.scrollY });
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/jpeg');
-            link.download = 'chess_score_sheet.jpg';
-            link.click();
+            for (let i = 1; i < moveCount; i++) {
+                const w = document.getElementById(`w${i}`).value;
+                const b = document.getElementById(`b${i}`).value;
+                if (!w) break;
+                pgn += `${i}. ${w} ${b} `;
+            }
 
-            buttonContainer.style.display = 'flex';
-        }
-
-        function exportToPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'pt', 'a4');
-
-            const buttonContainer = document.getElementById("buttonContainer");
-            buttonContainer.style.display = 'none';
-
-            pdf.html(document.querySelector(".containerWithMargin"), {
-                callback: function (pdf) {
-                    pdf.save("chess_score_sheet.pdf");
-                    buttonContainer.style.display = 'flex';
-                },
-                margin: [10, 10, 10, 10],
-                x: 10,
-                y: 10,
-                html2canvas: { scale: 1.2, scrollY: -window.scrollY }
+            navigator.clipboard.writeText(pgn).then(() => {
+                alert("PGN copied to clipboard! You can paste this into any Chess engine.");
+            }).catch(err => {
+                alert("Failed to copy PGN. Permissions might be restricted.");
             });
         }
 
-        function redirectToWebsite() {
-            window.location.href = "https://www.chesssaviya.lk";
+        // The Fix for Mobile WebViews: Share API vs Download
+        async function handleExport(type) {
+            const controls = document.getElementById('controlPanel');
+            const container = document.getElementById('printableArea');
+            
+            // Temporarily hide buttons for the screenshot
+            controls.style.display = 'none';
+
+            try {
+                const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+                controls.style.display = 'flex'; // Show buttons again
+
+                if (type === 'image') {
+                    canvas.toBlob(async (blob) => {
+                        const file = new File([blob], "chess_score.jpg", { type: "image/jpeg" });
+                        shareOrDownload(file);
+                    }, 'image/jpeg', 0.9);
+                } else {
+                    // PDF Logic
+                    const { jsPDF } = window.jspdf;
+                    const imgData = canvas.toDataURL('image/jpeg', 0.8);
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    const pdfBlob = pdf.output('blob');
+                    const file = new File([pdfBlob], "chess_score.pdf", { type: "application/pdf" });
+                    shareOrDownload(file);
+                }
+
+            } catch (err) {
+                console.error(err);
+                controls.style.display = 'flex';
+                alert("An error occurred during export.");
+            }
+        }
+
+        // SMART FUNCTION: Detects if we can Share (Mobile) or must Download (PC)
+        async function shareOrDownload(file) {
+            // 1. Try Native Mobile Share (Works in WebViews/Apps)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Chess Score Sheet',
+                        text: 'Here is my game record from Chess Saviya.'
+                    });
+                    return; // Success, stop here
+                } catch (error) {
+                    console.log("Share API failed or closed, falling back to download.");
+                }
+            }
+
+            // 2. Fallback to classic Download (PC / Non-supported WebViews)
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(file);
+            link.download = file.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
-    <script type='text/javascript' src='//pl27916045.effectivegatecpm.com/36/0c/29/360c29ecaf38ac69e55e691ab597bd3d.js'></script>
 </body>
-
 </html>
-
-
-
