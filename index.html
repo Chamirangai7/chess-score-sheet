@@ -79,7 +79,7 @@
         .btn-pgn { background: #334155; }
         .btn-save { background: #10b981; }
 
-        /* --- MODAL FIXES --- */
+        /* --- MODAL STYLES --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.9); z-index: 9999;
@@ -93,15 +93,14 @@
             display: flex; flex-direction: column; gap: 10px;
         }
 
-        /* CRITICAL: Force Long-Press Menu on iOS/Android */
         .modal-content img { 
             max-width: 100%; 
             height: auto; 
             border: 1px solid #ddd;
-            -webkit-touch-callout: default !important; /* Enables context menu on iOS */
-            -webkit-user-select: auto !important;      /* Enables selection */
+            -webkit-touch-callout: default !important;
+            -webkit-user-select: auto !important;
             user-select: auto !important;
-            pointer-events: auto !important;           /* Ensures touches register */
+            pointer-events: auto !important;
         }
 
         .modal-msg { color: #333; font-weight: 600; font-size: 0.9rem; }
@@ -111,7 +110,6 @@
             border: none; border-radius: 6px; font-weight: bold; width: 100%;
         }
 
-        /* Fallback Link Button */
         .download-link-btn {
             display: block; padding: 10px; background: #2563eb; 
             color: white; text-decoration: none; border-radius: 6px; 
@@ -174,7 +172,7 @@
 
         window.onload = () => {
             document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
-            for(let i=0; i<12; i++) addMoveRow(false);
+            for(let i = 0; i < 12; i++) addMoveRow(false);
         };
 
         function addMoveRow(focus = true) {
@@ -186,7 +184,7 @@
                 <input type="text" class="move-input" id="b${moveCount}">
             `;
             MOVES_CONTAINER.appendChild(row);
-            if(focus) setTimeout(() => document.getElementById(`w${moveCount}`).focus(), 100);
+            if (focus) setTimeout(() => document.getElementById(`w${moveCount}`).focus(), 100);
             moveCount++;
         }
 
@@ -216,9 +214,11 @@
         function fallbackCopy(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
-            textArea.style.position = "fixed"; textArea.style.left = "-9999px";
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
             document.body.appendChild(textArea);
-            textArea.focus(); textArea.select();
+            textArea.focus();
+            textArea.select();
             try {
                 document.execCommand('copy');
                 alert("PGN Copied!");
@@ -228,37 +228,79 @@
             document.body.removeChild(textArea);
         }
 
-        // --- IMAGE EXPORT ---
+        // --- IMAGE EXPORT (MOBILE WEBVIEW COMPATIBLE) ---
         async function generateImage() {
             const controls = document.getElementById('controlPanel');
             const container = document.getElementById('printableArea');
             
-            controls.style.display = 'none'; // Hide buttons
+            controls.style.display = 'none';
 
             try {
-                const canvas = await html2canvas(container, { scale: 2, useCORS: true, scrollY: -window.scrollY });
-                controls.style.display = 'flex'; // Show buttons
+                const canvas = await html2canvas(container, { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: -window.scrollY,
+                    logging: false,
+                    allowTaint: true
+                });
+                controls.style.display = 'flex';
 
-                // Convert to Blob for URL creation
-                canvas.toBlob(async (blob) => {
-                    // Create object URL
-                    const url = URL.createObjectURL(blob);
-                    
-                    // 1. Try Native Share
-                    const file = new File([blob], "chess_score.jpg", { type: "image/jpeg" });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
+                // Convert to base64 data URL (works everywhere)
+                const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // 1. Try Native Share API (for mobile browsers)
+                if (navigator.canShare) {
+                    try {
+                        const blob = await (await fetch(dataURL)).blob();
+                        const file = new File([blob], "chess_score.jpg", { type: "image/jpeg" });
+                        if (navigator.canShare({ files: [file] })) {
                             await navigator.share({ files: [file] });
-                            return; 
-                        } catch (e) {
-                            console.log("Share failed, opening modal.");
+                            return;
                         }
+                    } catch (e) {
+                        console.log("Share failed, trying other methods.");
                     }
+                }
 
-                    // 2. Open Modal (if share fails)
-                    showModal(url);
+                // 2. Send to parent app (for WebView/iframe in mobile apps)
+                if (window.ReactNativeWebView) {
+                    // React Native WebView
+                    const message = {
+                        type: 'downloadImage',
+                        data: dataURL,
+                        filename: 'chess_score.jpg'
+                    };
+                    window.ReactNativeWebView.postMessage(JSON.stringify(message));
+                    return;
+                }
 
-                }, 'image/jpeg', 0.9);
+                if (window.Android && typeof window.Android.saveBase64Image === 'function') {
+                    // Native Android WebView with JavaScript interface
+                    window.Android.saveBase64Image(dataURL, 'chess_score.jpg');
+                    return;
+                }
+
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveImage) {
+                    // iOS WKWebView with message handler
+                    window.webkit.messageHandlers.saveImage.postMessage({
+                        data: dataURL,
+                        filename: 'chess_score.jpg'
+                    });
+                    return;
+                }
+
+                if (window.parent !== window) {
+                    // iframe in web app - send to parent
+                    const message = {
+                        type: 'downloadImage',
+                        data: dataURL,
+                        filename: 'chess_score.jpg'
+                    };
+                    window.parent.postMessage(message, '*');
+                }
+
+                // 3. Fallback: Show modal with image for long-press save
+                showModal(dataURL);
 
             } catch (err) {
                 console.error(err);
@@ -267,16 +309,16 @@
             }
         }
 
-        function showModal(blobUrl) {
+        function showModal(imageData) {
             const modal = document.getElementById('previewModal');
             const container = document.getElementById('modalImageContainer');
             const downloadBtn = document.getElementById('directDownloadLink');
 
-            // Set Image
-            container.innerHTML = `<img src="${blobUrl}" alt="Score Sheet" />`;
+            // Set image source
+            container.innerHTML = `<img src="${imageData}" alt="Score Sheet" />`;
             
-            // Set Download Button Link
-            downloadBtn.href = blobUrl;
+            // Set download button with data URL
+            downloadBtn.href = imageData;
 
             modal.style.display = 'flex';
         }
