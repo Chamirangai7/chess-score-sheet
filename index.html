@@ -47,7 +47,7 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             width: 100%;
-            font-size: 16px; 
+            font-size: 16px; /* Prevents iOS zoom on focus */
         }
 
         .score-container {
@@ -79,42 +79,25 @@
         .btn-pgn { background: #334155; }
         .btn-save { background: #10b981; }
 
-        /* --- MODAL STYLES --- */
+        /* MODAL STYLES (For Mobile Fallback) */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9); z-index: 9999;
+            background: rgba(0,0,0,0.85); z-index: 9999;
             display: none; align-items: center; justify-content: center;
             flex-direction: column; padding: 20px;
         }
-        
         .modal-content {
             background: white; padding: 15px; border-radius: 12px;
-            max-width: 100%; max-height: 85vh; overflow-y: auto; text-align: center;
-            display: flex; flex-direction: column; gap: 10px;
+            max-width: 100%; max-height: 80vh; overflow: auto; text-align: center;
         }
-
-        .modal-content img { 
-            max-width: 100%; 
-            height: auto; 
-            border: 1px solid #ddd;
-            -webkit-touch-callout: default !important;
-            -webkit-user-select: auto !important;
-            user-select: auto !important;
-            pointer-events: auto !important;
-        }
-
-        .modal-msg { color: #333; font-weight: 600; font-size: 0.9rem; }
-        
+        .modal-content img { max-width: 100%; height: auto; border: 1px solid #ddd; }
+        .modal-msg { margin-bottom: 10px; color: #333; font-weight: 600; }
         .close-btn {
-            padding: 10px; background: #ef4444; color: white; 
-            border: none; border-radius: 6px; font-weight: bold; width: 100%;
+            margin-top: 15px; padding: 10px 20px; background: #ef4444;
+            color: white; border: none; border-radius: 6px; font-weight: bold;
         }
 
-        .download-link-btn {
-            display: block; padding: 10px; background: #2563eb; 
-            color: white; text-decoration: none; border-radius: 6px; 
-            font-weight: bold; font-size: 0.9rem; margin-top: 5px;
-        }
+        .hide-on-export { display: flex; }
     </style>
 </head>
 <body>
@@ -143,7 +126,7 @@
             <div id="movesList"></div>
         </div>
 
-        <div class="actions" id="controlPanel">
+        <div class="actions hide-on-export" id="controlPanel">
             <button class="btn btn-add" onclick="addMoveRow()">+ Move</button>
             <button class="btn btn-pgn" onclick="forceCopyPGN()">Copy PGN</button>
             <button class="btn btn-save" onclick="generateImage()">Save Image</button>
@@ -152,14 +135,8 @@
 
     <div id="previewModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-msg">Long Press image to Save</div>
-            
+            <div class="modal-msg">Long Press the image below to Save</div>
             <div id="modalImageContainer"></div>
-            
-            <a id="directDownloadLink" class="download-link-btn" href="#" download="chess_score.jpg">
-                Download Image (Click)
-            </a>
-
             <button class="close-btn" onclick="closeModal()">Close</button>
         </div>
     </div>
@@ -172,7 +149,7 @@
 
         window.onload = () => {
             document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
-            for(let i = 0; i < 12; i++) addMoveRow(false);
+            for(let i=0; i<12; i++) addMoveRow(false);
         };
 
         function addMoveRow(focus = true) {
@@ -184,12 +161,13 @@
                 <input type="text" class="move-input" id="b${moveCount}">
             `;
             MOVES_CONTAINER.appendChild(row);
-            if (focus) setTimeout(() => document.getElementById(`w${moveCount}`).focus(), 100);
+            if(focus) setTimeout(() => document.getElementById(`w${moveCount}`).focus(), 100);
             moveCount++;
         }
 
-        // --- PGN COPY ---
+        // --- FIXED PGN COPY (Legacy Fallback) ---
         function forceCopyPGN() {
+            // Build PGN String
             let pgn = `[Event "${document.getElementById('eventName').value}"]\n`;
             pgn += `[White "${document.getElementById('whitePlayer').value}"]\n`;
             pgn += `[Black "${document.getElementById('blackPlayer').value}"]\n`;
@@ -202,105 +180,75 @@
                 pgn += `${i}. ${w} ${b} `;
             }
 
+            // Method 1: Modern API (Try this first)
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(pgn)
                     .then(() => alert("PGN Copied!"))
-                    .catch(() => fallbackCopy(pgn));
+                    .catch(() => fallbackCopy(pgn)); // If fails, go to fallback
             } else {
-                fallbackCopy(pgn);
+                fallbackCopy(pgn); // If API doesn't exist, go to fallback
             }
         }
 
         function fallbackCopy(text) {
+            // Method 2: The "Old School" hidden textarea trick
+            // This works in almost all restrictive WebViews
             const textArea = document.createElement("textarea");
             textArea.value = text;
+            
+            // Ensure it's part of the DOM but invisible
             textArea.style.position = "fixed";
             textArea.style.left = "-9999px";
+            textArea.style.top = "0";
             document.body.appendChild(textArea);
+            
             textArea.focus();
             textArea.select();
+            
             try {
-                document.execCommand('copy');
-                alert("PGN Copied!");
+                const successful = document.execCommand('copy');
+                if(successful) alert("PGN Copied (Legacy Mode)!");
+                else alert("Failed to copy. Please manually screenshot.");
             } catch (err) {
-                alert("Copy failed.");
+                alert("Copy failed completely. Your browser may be blocking scripts.");
             }
+            
             document.body.removeChild(textArea);
         }
 
-        // --- IMAGE EXPORT (MOBILE WEBVIEW COMPATIBLE) ---
+        // --- FIXED IMAGE EXPORT (Manual Save Mode) ---
         async function generateImage() {
             const controls = document.getElementById('controlPanel');
             const container = document.getElementById('printableArea');
             
+            // 1. Hide buttons
             controls.style.display = 'none';
 
             try {
-                const canvas = await html2canvas(container, { 
-                    scale: 2, 
-                    useCORS: true, 
-                    scrollY: -window.scrollY,
-                    logging: false,
-                    allowTaint: true
-                });
-                controls.style.display = 'flex';
+                // 2. Capture Screenshot
+                const canvas = await html2canvas(container, { scale: 2, useCORS: true, scrollY: -window.scrollY });
+                controls.style.display = 'flex'; // Show buttons back immediately
 
-                // Convert to base64 data URL (works everywhere)
-                const dataURL = canvas.toDataURL('image/jpeg', 0.9);
-                
-                // 1. Try Native Share API (for mobile browsers)
-                if (navigator.canShare) {
-                    try {
-                        const blob = await (await fetch(dataURL)).blob();
-                        const file = new File([blob], "chess_score.jpg", { type: "image/jpeg" });
-                        if (navigator.canShare({ files: [file] })) {
-                            await navigator.share({ files: [file] });
-                            return;
+                // 3. Try Native Share (Best for Mobile)
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], "chess_score.jpg", { type: "image/jpeg" });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Chess Score',
+                                text: 'My Game Record'
+                            });
+                            return; // Stop if share worked
+                        } catch (e) {
+                            console.log("Share canceled or failed, opening modal.");
                         }
-                    } catch (e) {
-                        console.log("Share failed, trying other methods.");
                     }
-                }
 
-                // 2. Send to parent app (for WebView/iframe in mobile apps)
-                if (window.ReactNativeWebView) {
-                    // React Native WebView
-                    const message = {
-                        type: 'downloadImage',
-                        data: dataURL,
-                        filename: 'chess_score.jpg'
-                    };
-                    window.ReactNativeWebView.postMessage(JSON.stringify(message));
-                    return;
-                }
-
-                if (window.Android && typeof window.Android.saveBase64Image === 'function') {
-                    // Native Android WebView with JavaScript interface
-                    window.Android.saveBase64Image(dataURL, 'chess_score.jpg');
-                    return;
-                }
-
-                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.saveImage) {
-                    // iOS WKWebView with message handler
-                    window.webkit.messageHandlers.saveImage.postMessage({
-                        data: dataURL,
-                        filename: 'chess_score.jpg'
-                    });
-                    return;
-                }
-
-                if (window.parent !== window) {
-                    // iframe in web app - send to parent
-                    const message = {
-                        type: 'downloadImage',
-                        data: dataURL,
-                        filename: 'chess_score.jpg'
-                    };
-                    window.parent.postMessage(message, '*');
-                }
-
-                // 3. Fallback: Show modal with image for long-press save
-                showModal(dataURL);
+                    // 4. Fallback: Show Modal for Long-Press Save
+                    showModal(canvas.toDataURL("image/jpeg"));
+                }, 'image/jpeg', 0.9);
 
             } catch (err) {
                 console.error(err);
@@ -309,17 +257,11 @@
             }
         }
 
-        function showModal(imageData) {
+        function showModal(imgData) {
             const modal = document.getElementById('previewModal');
             const container = document.getElementById('modalImageContainer');
-            const downloadBtn = document.getElementById('directDownloadLink');
-
-            // Set image source
-            container.innerHTML = `<img src="${imageData}" alt="Score Sheet" />`;
             
-            // Set download button with data URL
-            downloadBtn.href = imageData;
-
+            container.innerHTML = `<img src="${imgData}" alt="Score Sheet" />`;
             modal.style.display = 'flex';
         }
 
