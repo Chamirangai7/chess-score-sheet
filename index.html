@@ -2,272 +2,272 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Modern Chess Score Sheet</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronic Chess Score Sheet</title>
     <style>
-        :root {
-            --primary: #2563eb;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --border: #e2e8f0;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px 10px;
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            color: #333;
         }
-
         .container {
             width: 100%;
-            max-width: 700px;
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            padding: 24px;
+            max-width: 600px;
+            text-align: center;
             position: relative;
         }
-
-        h1 { margin: 0; color: var(--primary); font-size: 1.5rem; text-align: center; }
-        .subtitle { font-size: 0.875rem; color: #64748b; text-align: center; margin-bottom: 20px; }
-
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .full-width { grid-column: span 2; }
-
-        input, select {
+        .containerWithMargin {
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        h2 {
+            color: #ffffff;
+            background-color: #0062ff;
             padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 7px;
+        }
+        table {
+            border-collapse: collapse;
             width: 100%;
-            font-size: 16px; /* Prevents iOS zoom on focus */
+            margin-top: 20px;
         }
-
-        .score-container {
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 20px;
+        th {
+            padding: 10px;
+            background-color: Black;
+            color: white;
+            border: 1px solid #ddd;
         }
-
-        .score-header, .move-row {
-            display: grid;
-            grid-template-columns: 40px 1fr 1fr;
+        td {
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+        }
+        .move-input {
+            width: 90%;
+            padding: 3px;
             text-align: center;
+            font-size: 1rem;
         }
-        
-        .score-header { background: #1e293b; color: white; padding: 10px; font-weight: 600; }
-        .move-row { border-bottom: 1px solid var(--border); }
-        
-        .move-num { background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
-        .move-input { border: none; text-align: center; font-weight: 500; border-radius: 0; }
-        .move-input:focus { background: #eff6ff; }
-
-        .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-        .btn {
-            flex: 1; padding: 12px; border: none; border-radius: 8px;
-            color: white; font-weight: 600; cursor: pointer; min-width: 120px;
+        .move-input.white-bg {
+            background-color: #ffffff;
+            color: #0062ff;
         }
-        .btn-add { background: var(--primary); }
-        .btn-pgn { background: #334155; }
-        .btn-save { background: #10b981; }
-
-        /* MODAL STYLES (For Mobile Fallback) */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85); z-index: 9999;
-            display: none; align-items: center; justify-content: center;
-            flex-direction: column; padding: 20px;
+        .move-input.black-bg {
+            background-color: #e0e0e0;
+            color: #000;
         }
-        .modal-content {
-            background: white; padding: 15px; border-radius: 12px;
-            max-width: 100%; max-height: 80vh; overflow: auto; text-align: center;
+        .move-input.move-bg {
+            background-color: #f0f8ff;
+            color: #333;
         }
-        .modal-content img { max-width: 100%; height: auto; border: 1px solid #ddd; }
-        .modal-msg { margin-bottom: 10px; color: #333; font-weight: 600; }
-        .close-btn {
-            margin-top: 15px; padding: 10px 20px; background: #ef4444;
-            color: white; border: none; border-radius: 6px; font-weight: bold;
+        .top-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
         }
-
-        .hide-on-export { display: flex; }
+        .full-width {
+            grid-column: span 2;
+        }
+        .label {
+            text-align: left;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .top-info input {
+            width: 100%;
+            padding: 8px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+        }
+        .add-move-button {
+            background-color: #0062ff;
+        }
+        .export-button {
+            background-color: #4CAF50;
+        }
+        .footer {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1rem;
+        }
+        .footer .left-text {
+            color: gray;
+        }
+        .footer .highlight {
+            color: #0062ff;
+            font-weight: bold;
+        }
+        .footer .right-text {
+            color: #0062ff;
+            font-style: italic;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="container containerWithMargin">
+        <div id="scoreSheetContainer">
+            <h2>Chess Score Sheet</h1>
+            
+            <!-- Top Info Inputs -->
+            <div class="top-info">
+                <div class="label">White Player</div>
+                <div class="label">Black Player</div>
+                <input type="text" placeholder="Name White" id="whitePlayer">
+                <input type="text" placeholder="Name Black" id="blackPlayer">
 
-    <div class="container" id="printableArea">
-        <h1>Chess Score Sheet</h1>
-        <div class="subtitle">Official Electronic Record</div>
+                <input type="text" placeholder="White Rating" id="whiteRating">
+                <input type="text" placeholder="Black Rating" id="blackRating">
+                
+                <div class="label full-width">Event Name</div>
+                <input type="text" class="full-width" placeholder="Chess Event Name" id="eventName">
 
-        <div class="info-grid">
-            <input type="text" id="whitePlayer" placeholder="White Player">
-            <input type="text" id="blackPlayer" placeholder="Black Player">
-            <input type="text" id="eventName" class="full-width" placeholder="Tournament Name">
-            <input type="date" id="eventDate">
-            <select id="result">
-                <option value="" disabled selected>Result</option>
-                <option value="1-0">1-0</option>
-                <option value="1/2-1/2">Draw</option>
-                <option value="0-1">0-1</option>
-            </select>
-        </div>
+                <div class="label">Date</div>
+                <div class="label">Time</div>
+                <input type="date" id="eventDate">
+                <input type="time" id="eventTime">
 
-        <div class="score-container">
-            <div class="score-header">
-                <div>#</div><div>White</div><div>Black</div>
+                <div class="label">Round</div>
+                <div class="label">Result</div>
+                <input type="text" placeholder="Round No:" id="round">
+                <select id="result">
+                    <option value="" disabled selected>Select Result</option>
+                    <option value="1 - 0">1 - 0</option>
+                    <option value="1/2 - 1/2">1/2 - 1/2</option>
+                    <option value="0 - 1">0 - 1</option>
+                </select>
             </div>
-            <div id="movesList"></div>
-        </div>
+            
+            <!-- Score Sheet Table -->
+            <table id="scoreSheet">
+                <thead>
+                    <tr>
+                        <th>Move</th>
+                        <th>White</th>
+                        <th>Black</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreTable">
+                    <!-- Pre-added 10 move rows -->
+                    <script>
+                        for (let i = 1; i <= 10; i++) {
+                            document.write(`
+                                <tr>
+                                    <td>${i}</td>
+                                    <td><input type="text" class="move-input white-bg" placeholder="Move ${i}"></td>
+                                    <td><input type="text" class="move-input black-bg" placeholder="Move ${i}"></td>
+                                </tr>
+                            `);
+                        }
+                    </script>
+                </tbody>
+            </table>
+            
+            <!-- Action Buttons -->
+            <div class="buttons" id="buttonContainer">
+                <button class="button add-move-button" onclick="addMoveRow()">Add Move</button>
+                <button class="button export-button" onclick="exportToPDF()">Download as PDF</button>
+                <button class="button export-button" onclick="downloadAsImage()">Download as Image</button>
+            </div>
 
-        <div class="actions hide-on-export" id="controlPanel">
-            <button class="btn btn-add" onclick="addMoveRow()">+ Move</button>
-            <button class="btn btn-pgn" onclick="forceCopyPGN()">Copy PGN</button>
-            <button class="btn btn-save" onclick="generateImage()">Save Image</button>
+            <!-- Footer -->
+            <div class="footer">
+                <span class="left-text">Developed by <span class="highlight">Chess Saviya</span></span>
+                <span class="right-text" onclick="redirectToWebsite()">www.chesssaviya.lk</span>
+            </div>
         </div>
     </div>
 
-    <div id="previewModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-msg">Long Press the image below to Save</div>
-            <div id="modalImageContainer"></div>
-            <button class="close-btn" onclick="closeModal()">Close</button>
-        </div>
-    </div>
-
+    <!-- Libraries for PDF and Image Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        let moveCount = 1;
-        const MOVES_CONTAINER = document.getElementById('movesList');
+        let moveNumber = 11;
 
-        window.onload = () => {
-            document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
-            for(let i=0; i<12; i++) addMoveRow(false);
-        };
+        function addMoveRow() {
+            const row = document.createElement("tr");
 
-        function addMoveRow(focus = true) {
-            const row = document.createElement('div');
-            row.className = 'move-row';
-            row.innerHTML = `
-                <div class="move-num">${moveCount}</div>
-                <input type="text" class="move-input" id="w${moveCount}">
-                <input type="text" class="move-input" id="b${moveCount}">
-            `;
-            MOVES_CONTAINER.appendChild(row);
-            if(focus) setTimeout(() => document.getElementById(`w${moveCount}`).focus(), 100);
-            moveCount++;
+            const moveCell = document.createElement("td");
+            moveCell.textContent = moveNumber;
+            row.appendChild(moveCell);
+
+            const whiteCell = document.createElement("td");
+            const whiteInput = document.createElement("input");
+            whiteInput.type = "text";
+            whiteInput.className = "move-input white-bg";
+            whiteCell.appendChild(whiteInput);
+            row.appendChild(whiteCell);
+
+            const blackCell = document.createElement("td");
+            const blackInput = document.createElement("input");
+            blackInput.type = "text";
+            blackInput.className = "move-input black-bg";
+            blackCell.appendChild(blackInput);
+            row.appendChild(blackCell);
+
+            document.getElementById("scoreTable").appendChild(row);
+            moveNumber++;
         }
 
-        // --- FIXED PGN COPY (Legacy Fallback) ---
-        function forceCopyPGN() {
-            // Build PGN String
-            let pgn = `[Event "${document.getElementById('eventName').value}"]\n`;
-            pgn += `[White "${document.getElementById('whitePlayer').value}"]\n`;
-            pgn += `[Black "${document.getElementById('blackPlayer').value}"]\n`;
-            pgn += `[Result "${document.getElementById('result').value}"]\n\n`;
+        async function downloadAsImage() {
+            const buttonContainer = document.getElementById("buttonContainer");
+            buttonContainer.style.display = 'none';
 
-            for (let i = 1; i < moveCount; i++) {
-                const w = document.getElementById(`w${i}`).value;
-                const b = document.getElementById(`b${i}`).value;
-                if (!w) break;
-                pgn += `${i}. ${w} ${b} `;
-            }
+            const container = document.querySelector(".containerWithMargin");
+            const canvas = await html2canvas(container, { scale: 1.5, scrollY: -window.scrollY });
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/jpeg');
+            link.download = 'chess_score_sheet.jpg';
+            link.click();
 
-            // Method 1: Modern API (Try this first)
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(pgn)
-                    .then(() => alert("PGN Copied!"))
-                    .catch(() => fallbackCopy(pgn)); // If fails, go to fallback
-            } else {
-                fallbackCopy(pgn); // If API doesn't exist, go to fallback
-            }
+            buttonContainer.style.display = 'flex';
         }
 
-        function fallbackCopy(text) {
-            // Method 2: The "Old School" hidden textarea trick
-            // This works in almost all restrictive WebViews
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            
-            // Ensure it's part of the DOM but invisible
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            textArea.style.top = "0";
-            document.body.appendChild(textArea);
-            
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                const successful = document.execCommand('copy');
-                if(successful) alert("PGN Copied (Legacy Mode)!");
-                else alert("Failed to copy. Please manually screenshot.");
-            } catch (err) {
-                alert("Copy failed completely. Your browser may be blocking scripts.");
-            }
-            
-            document.body.removeChild(textArea);
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'pt', 'a4');
+
+            const buttonContainer = document.getElementById("buttonContainer");
+            buttonContainer.style.display = 'none';
+
+            pdf.html(document.querySelector(".containerWithMargin"), {
+                callback: function (pdf) {
+                    pdf.save("chess_score_sheet.pdf");
+                    buttonContainer.style.display = 'flex';
+                },
+                margin: [10, 10, 10, 10],
+                x: 10,
+                y: 10,
+                html2canvas: { scale: 1.2, scrollY: -window.scrollY }
+            });
         }
 
-        // --- FIXED IMAGE EXPORT (Manual Save Mode) ---
-        async function generateImage() {
-            const controls = document.getElementById('controlPanel');
-            const container = document.getElementById('printableArea');
-            
-            // 1. Hide buttons
-            controls.style.display = 'none';
-
-            try {
-                // 2. Capture Screenshot
-                const canvas = await html2canvas(container, { scale: 2, useCORS: true, scrollY: -window.scrollY });
-                controls.style.display = 'flex'; // Show buttons back immediately
-
-                // 3. Try Native Share (Best for Mobile)
-                canvas.toBlob(async (blob) => {
-                    const file = new File([blob], "chess_score.jpg", { type: "image/jpeg" });
-
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                files: [file],
-                                title: 'Chess Score',
-                                text: 'My Game Record'
-                            });
-                            return; // Stop if share worked
-                        } catch (e) {
-                            console.log("Share canceled or failed, opening modal.");
-                        }
-                    }
-
-                    // 4. Fallback: Show Modal for Long-Press Save
-                    showModal(canvas.toDataURL("image/jpeg"));
-                }, 'image/jpeg', 0.9);
-
-            } catch (err) {
-                console.error(err);
-                controls.style.display = 'flex';
-                alert("Error generating image.");
-            }
-        }
-
-        function showModal(imgData) {
-            const modal = document.getElementById('previewModal');
-            const container = document.getElementById('modalImageContainer');
-            
-            container.innerHTML = `<img src="${imgData}" alt="Score Sheet" />`;
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('previewModal').style.display = 'none';
+        function redirectToWebsite() {
+            window.location.href = "https://www.chesssaviya.lk";
         }
     </script>
+    <script type='text/javascript' src='//pl27916045.effectivegatecpm.com/36/0c/29/360c29ecaf38ac69e55e691ab597bd3d.js'></script>
 </body>
+
 </html>
